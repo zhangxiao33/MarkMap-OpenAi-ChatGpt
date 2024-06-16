@@ -70,7 +70,7 @@ export default {
         const editorContent = ref('')
         const selectedMethod = ref('方法一')
         const contentModified = ref(false)
-        const diagramUrl = ref(require('src/assets/two.png')) // Initial placeholder image
+        const diagramUrl = ref(require('@/assets/css/two.png')); // Update the path accordingly
 
         const mm = ref(null)
         const svgRef = ref(null)
