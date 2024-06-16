@@ -11,6 +11,19 @@
                     <el-button type="primary" @click="generateMindMap">生成</el-button>
                 </el-col>
             </el-row>
+            <el-row :gutter="20" style="margin-top: 10px;">
+                <el-col :span="24">
+                    <el-radio-group v-model="selectedMethod">
+                        <el-radio-button label="方法一"></el-radio-button>
+                        <el-radio-button label="方法二"></el-radio-button>
+                    </el-radio-group>
+                </el-col>
+            </el-row>
+            <el-row v-if="selectedMethod === '方法二'" :gutter="20" style="margin-top: 10px;">
+                <el-col :span="24">
+                    <el-input v-model="referenceContent" type="textarea" rows="5" placeholder="输入参考内容"></el-input>
+                </el-col>
+            </el-row>
             <el-row :gutter="20" style="margin-top: 20px;">
                 <el-col :span="24">
                     <el-input v-model="editorContent" type="textarea" rows="10" placeholder="编辑内容"></el-input>
@@ -20,7 +33,8 @@
 
         <el-col :span="16" class="right-panel">
             <div class="svg-container">
-                <svg ref="svgRef" class="markmap-svg"></svg>
+                <img v-if="selectedMethod === '方法二'" :src="diagramUrl" ref="imageRef" class="scalable" alt="生成图像" />
+                <svg v-else ref="svgRef" class="markmap-svg"></svg>
             </div>
             <el-row :gutter="10" class="controls">
                 <el-col :span="6">
@@ -39,9 +53,8 @@
         </el-col>
     </el-row>
 </template>
-
 <script>
-import { ref, onMounted, onUpdated } from 'vue'
+import { ref, onMounted, onUpdated, watch } from 'vue'
 import { Transformer } from 'markmap-lib'
 import { Markmap } from 'markmap-view'
 import * as htmlToImage from 'html-to-image'
@@ -53,7 +66,23 @@ export default {
         const transformer = new Transformer()
 
         const title = ref('')
-        const editorContent = ref(`
+        const referenceContent = ref('')
+        const editorContent = ref('')
+        const selectedMethod = ref('方法一')
+        const contentModified = ref(false)
+        const diagramUrl = ref(require('@/assets/two.png')) // Initial placeholder image
+
+        const mm = ref(null)
+        const svgRef = ref(null)
+        const imageRef = ref(null) // Reference to the image element
+        const scale = ref(1) // Scale state for image zoom
+        const isDragging = ref(false) // State for drag
+        const startX = ref(0) // Initial X position for drag
+        const startY = ref(0) // Initial Y position for drag
+        const translateX = ref(0) // Translation X for drag
+        const translateY = ref(0) // Translation Y for drag
+
+        const methodOneTemplate = `
 # 思维导图
 
 1. 标题1
@@ -65,103 +94,328 @@ export default {
 - useful
 - easy
 - interactive
-        `)
+        `
 
-        const mm = ref()
-        const svgRef = ref()
+        const methodTwoTemplate = `
+@startmindmap
+* 思维导图
+** 主题1
+*** 子主题1
+**** 叶子节点1
+*** 子主题2
+**** 叶子节点2
+** 主题2
+*** 子主题3
+**** 叶子节点3
+@endmindmap
+        `
 
         const update = () => {
+            if (!mm.value || !svgRef.value) return
             const { root } = transformer.transform(editorContent.value)
             mm.value.setData(root)
             mm.value.fit()
         }
 
-        const zoomIn = () => mm.value.rescale(1.25)
+        const zoomIn = () => {
+            if (selectedMethod.value === '方法一') {
+                mm.value && mm.value.rescale(1.25)
+            } else {
+                scale.value *= 1.25
+                updateImageTransform()
+            }
+        }
 
-        const zoomOut = () => mm.value.rescale(0.8)
+        const zoomOut = () => {
+            if (selectedMethod.value === '方法一') {
+                mm.value && mm.value.rescale(0.8)
+            } else {
+                scale.value *= 0.8
+                updateImageTransform()
+            }
+        }
 
-        const fitToScreen = () => mm.value.fit()
+        const fitToScreen = () => {
+            if (selectedMethod.value === '方法一') {
+                mm.value && mm.value.fit()
+            } else {
+                scale.value = 1
+                translateX.value = 0
+                translateY.value = 0
+                updateImageTransform()
+            }
+        }
 
         const onSave = async () => {
-            const dataUrl = await htmlToImage.toPng(svgRef.value)
-            saveAs(dataUrl, 'pastking.png')
+            if (selectedMethod.value === '方法一') {
+                const dataUrl = await htmlToImage.toPng(svgRef.value)
+                saveAs(dataUrl, 'pastking.png')
+            } else {
+                // Download the generated image for method two
+                const imageResponse = await fetch(diagramUrl.value)
+                const imageBlob = await imageResponse.blob()
+                saveAs(imageBlob, 'mindmap.png')
+            }
         }
 
         const generateMindMap = async () => {
+            if (selectedMethod.value === '方法一') {
+                try {
+                    const response = await fetch(
+                        `${process.env.VUE_APP_API_BASE_URL}/v1/chat/completions`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${process.env.VUE_APP_API_KEY}`
+                            },
+                            body: JSON.stringify({
+                                messages: [
+                                    {
+                                        role: 'system',
+                                        content: `我将设计思维导图，请以markdown格式输出`
+                                    },
+                                    {
+                                        role: 'user',
+                                        content: `${title.value}`
+                                    }
+                                ],
+                                stream: true,
+                                model: `gpt-3.5-turbo`,
+                                temperature: 0.5,
+                                presence_penalty: 2
+                            })
+                        }
+                    )
+
+                    const reader = response.body.getReader()
+                    const decoder = new TextDecoder('utf-8')
+                    let result = ''
+
+                    while (true) {
+                        const { done, value } = await reader.read()
+                        if (done) break
+                        const chunk = decoder.decode(value, { stream: true })
+                        const lines = chunk.split('\n').filter(line => line.trim())
+                        for (const line of lines) {
+                            if (line === 'data: [DONE]') return
+                            if (line.startsWith('data: ')) {
+                                const data = JSON.parse(line.slice(6))
+                                if (data.choices[0].delta && data.choices[0].delta.content) {
+                                    result += data.choices[0].delta.content
+                                    editorContent.value = result // Update the editor content
+                                }
+                            }
+                        }
+                    }
+
+                    editorContent.value = result.trim()
+                    contentModified.value = true // Mark content as modified
+                    update() // Ensure the mind map updates immediately
+                } catch (error) {
+                    console.error('Error generating mind map:', error)
+                }
+            } else {
+                // 方法二：使用 OpenAI 生成新的 markdown 内容
+                try {
+                    const response = await fetch(
+                        `${process.env.VUE_APP_API_BASE_URL}/v1/chat/completions`,
+                        {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${process.env.VUE_APP_API_KEY}`
+                            },
+                            body: JSON.stringify({
+                                messages: [
+                                    {
+                                        role: 'system',
+                                        content: `我想使用代码创建一个《${title.value}》的思维导图，其中包含多个主题和子主题，以及叶子节点。请你提供一些Markdown格式的文本。在Markdown格式中，首行必须是@startmindmap，结尾必须是@endmindmap，* 表示中央主题， ** 表示主要主题，*** 表示子主题，**** 表示叶子节点。请参照以上格式，在markdown代码块中帮我创建一个有效的思维导图。下面是参考内容，如果有请参考，如果显示暂无则请你直接生成不用使用参考内容:${referenceContent.value ? referenceContent.value : '暂无'}`
+                                    }
+                                ],
+                                stream: true,
+                                model: `gpt-3.5-turbo`,
+                                temperature: 0.5,
+                                presence_penalty: 2
+                            })
+                        }
+                    )
+
+                    const reader = response.body.getReader()
+                    const decoder = new TextDecoder('utf-8')
+                    let result = ''
+
+                    while (true) {
+                        const { done, value } = await reader.read()
+                        if (done) break
+                        const chunk = decoder.decode(value, { stream: true })
+                        const lines = chunk.split('\n').filter(line => line.trim())
+                        for (const line of lines) {
+                            if (line === 'data: [DONE]') return
+                            if (line.startsWith('data: ')) {
+                                const data = JSON.parse(line.slice(6))
+                                if (data.choices[0].delta && data.choices[0].delta.content) {
+                                    result += data.choices[0].delta.content
+                                    editorContent.value = result // Update the editor content
+                                }
+                            }
+                        }
+                    }
+
+                    editorContent.value = result.trim()
+                    contentModified.value = true // Mark content as modified
+
+                    // 自动生成图像请求
+                    if (editorContent.value.includes('@endmindmap')) {
+                        generateDiagram()
+                    }
+                } catch (error) {
+                    console.error('Error generating mind map:', error)
+                }
+            }
+        }
+
+        const generateDiagram = async () => {
             try {
                 const response = await fetch(
-                    `${process.env.VUE_APP_API_BASE_URL}/v1/chat/completions`,
+                    'https://mistpe-flask-spaceswdt3.hf.space/v1/images/generations',
                     {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${process.env.VUE_APP_API_KEY}`
+                            'Authorization': 'Bearer sk-xxx', // Replace 'sk-xxx' with your actual API key
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            messages: [
-                                {
-                                    role: 'system',
-                                    content: `我将设计思维导图，请以markdown格式输出`
-                                },
-                                {
-                                    role: 'user',
-                                    content: `${title.value}`
-                                }
-                            ],
-                            stream: true,
-                            model: `gpt-3.5-turbo`,
-                            temperature: 0.5,
-                            presence_penalty: 2
+                            model: 'dall-e-3',
+                            prompt: editorContent.value,
+                            n: 1,
+                            size: '1024x1024'
                         })
                     }
                 )
 
-                const reader = response.body.getReader()
-                const decoder = new TextDecoder('utf-8')
-                let result = ''
-
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-                    const chunk = decoder.decode(value, { stream: true })
-                    const lines = chunk.split('\n').filter(line => line.trim())
-                    for (const line of lines) {
-                        if (line === 'data: [DONE]') return
-                        if (line.startsWith('data: ')) {
-                            const data = JSON.parse(line.slice(6))
-                            if (data.choices[0].delta && data.choices[0].delta.content) {
-                                result += data.choices[0].delta.content
-                                editorContent.value = result // Update the editor content
-                            }
-                        }
-                    }
+                const data = await response.json()
+                if (data && data.data && data.data[0] && data.data[0].url) {
+                    diagramUrl.value = data.data[0].url // Update the diagram URL
                 }
-
-                editorContent.value = result.trim()
-                update()
             } catch (error) {
-                console.error('Error generating mind map:', error)
+                console.error('Error generating diagram:', error)
             }
         }
 
+        const updateImageTransform = () => {
+            imageRef.value.style.transform = `scale(${scale.value}) translate(${translateX.value}px, ${translateY.value}px)`
+        }
+
+        const onMouseDown = (event) => {
+            isDragging.value = true
+            startX.value = event.clientX - translateX.value
+            startY.value = event.clientY - translateY.value
+            document.addEventListener('mousemove', onMouseMove)
+            document.addEventListener('mouseup', onMouseUp)
+        }
+
+        const onMouseMove = (event) => {
+            if (!isDragging.value) return
+            translateX.value = event.clientX - startX.value
+            translateY.value = event.clientY - startY.value
+            updateImageTransform()
+        }
+
+        const onMouseUp = () => {
+            isDragging.value = false
+            document.removeEventListener('mousemove', onMouseMove)
+            document.removeEventListener('mouseup', onMouseUp)
+        }
+
+        const onWheel = (event) => {
+            event.preventDefault()
+            if (event.deltaY > 0) {
+                scale.value *= 0.9
+            } else {
+                scale.value *= 1.1
+            }
+            updateImageTransform()
+        }
+
         onMounted(() => {
-            // 初始化markmap思维导图
-            mm.value = Markmap.create(svgRef.value)
-            // 更新思维导图渲染
-            update()
+            if (selectedMethod.value === '方法一') {
+                editorContent.value = methodOneTemplate.trim()
+                const { root } = transformer.transform(editorContent.value)
+                mm.value = Markmap.create(svgRef.value, null, root)
+                update()
+            } else {
+                editorContent.value = methodTwoTemplate.trim()
+                const imageElement = imageRef.value
+                imageElement.addEventListener('mousedown', onMouseDown)
+                imageElement.addEventListener('wheel', onWheel)
+            }
         })
 
-        onUpdated(update)
+        onUpdated(() => {
+            if (selectedMethod.value === '方法一') {
+                update()
+            } else {
+                const imageElement = imageRef.value
+                imageElement.addEventListener('mousedown', onMouseDown)
+                imageElement.addEventListener('wheel', onWheel)
+            }
+        })
+
+        watch(selectedMethod, (newMethod, oldMethod) => {
+            if (mm.value) {
+                mm.value.destroy()
+                mm.value = null
+            }
+
+            if (newMethod === '方法一') {
+                editorContent.value = methodOneTemplate.trim()
+                const { root } = transformer.transform(editorContent.value)
+                mm.value = Markmap.create(svgRef.value, null, root)
+                update()
+            } else if (newMethod === '方法二') {
+                contentModified.value = false // Reset contentModified when switching to method two
+                scale.value = 1 // Reset scale when switching to method two
+                translateX.value = 0
+                translateY.value = 0
+                editorContent.value = methodTwoTemplate.trim()
+                const imageElement = imageRef.value
+                imageElement.addEventListener('mousedown', onMouseDown)
+                imageElement.addEventListener('wheel', onWheel)
+            }
+        })
+
+        watch(editorContent, (newContent) => {
+            if (selectedMethod.value === '方法二' && newContent.includes('@endmindmap')) {
+                generateDiagram() // Automatically generate diagram when @endmindmap is detected
+            }
+        })
 
         return {
             title,
+            referenceContent,
             editorContent,
+            selectedMethod,
+            contentModified,
+            diagramUrl,
             generateMindMap,
+            generateDiagram,
             zoomIn,
             zoomOut,
             fitToScreen,
             onSave,
-            svgRef
+            svgRef,
+            imageRef,
+            scale,
+            isDragging,
+            startX,
+            startY,
+            translateX,
+            translateY,
+            onMouseDown,
+            onMouseMove,
+            onMouseUp,
+            onWheel
         }
     }
 }
@@ -169,41 +423,54 @@ export default {
 
 <style scoped>
 .mind-container {
-    width: 100%;
-    height: 100%;
-    display: flex;
+    padding: 20px;
 }
 
 .left-panel {
     display: flex;
     flex-direction: column;
-    max-height: 100vh;
-    overflow: auto;
 }
 
 .right-panel {
     display: flex;
     flex-direction: column;
-    flex: 1;
+    align-items: center;
 }
 
 .svg-container {
-    flex: 1;
+    width: 100%;
+    height: 80vh;
+    border: 1px solid #d9d9d9;
+    border-radius: 4px;
+    overflow: hidden; /* Hide overflow to enable dragging */
+    position: relative;
+    background: #fff;
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+.svg-container img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* Maintain aspect ratio */
+}
+
+.scalable {
+    transition: transform 0.2s ease;
+    cursor: grab; /* Indicate draggable content */
+}
+
+.scalable:active {
+    cursor: grabbing; /* Change cursor while dragging */
+}
+
+.controls {
+    margin-top: 10px;
 }
 
 .markmap-svg {
     width: 100%;
     height: 100%;
-}
-
-.controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 50px;
-    margin-top: 10px;
 }
 </style>
