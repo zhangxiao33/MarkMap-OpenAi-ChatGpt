@@ -29,6 +29,21 @@
                     <el-input v-model="editorContent" type="textarea" rows="10" placeholder="编辑内容"></el-input>
                 </el-col>
             </el-row>
+            <!-- 控制按钮区域，默认隐藏 -->
+            <el-row :gutter="10" class="controls controls-mobile">
+                <el-col :span="6">
+                    <el-button @click="zoomIn">放大</el-button>
+                </el-col>
+                <el-col :span="6">
+                    <el-button @click="zoomOut">缩小</el-button>
+                </el-col>
+                <el-col :span="6">
+                    <el-button @click="fitToScreen">适应屏幕</el-button>
+                </el-col>
+                <el-col :span="6">
+                    <el-button @click="onSave">下载</el-button>
+                </el-col>
+            </el-row>
         </el-col>
 
         <el-col :span="16" class="right-panel">
@@ -36,7 +51,8 @@
                 <img v-if="selectedMethod === '方法二'" :src="diagramUrl" ref="imageRef" class="scalable" alt="生成图像" />
                 <svg v-else ref="svgRef" class="markmap-svg"></svg>
             </div>
-            <el-row :gutter="10" class="controls">
+            <!-- 控制按钮区域，默认显示 -->
+            <el-row :gutter="10" class="controls controls-pc">
                 <el-col :span="6">
                     <el-button @click="zoomIn">放大</el-button>
                 </el-col>
@@ -53,6 +69,7 @@
         </el-col>
     </el-row>
 </template>
+
 <script>
 import { ref, onMounted, onUpdated, watch } from 'vue'
 import { Transformer } from 'markmap-lib'
@@ -70,7 +87,7 @@ export default {
         const editorContent = ref('')
         const selectedMethod = ref('方法一')
         const contentModified = ref(false)
-        const diagramUrl = ref(require('@/assets/css/two.png')); // Update the path accordingly
+        const diagramUrl = ref(require('@/assets/css/two.png')) // Initial placeholder image
 
         const mm = ref(null)
         const svgRef = ref(null)
@@ -424,6 +441,9 @@ export default {
 <style scoped>
 .mind-container {
     padding: 20px;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
 }
 
 .left-panel {
@@ -469,8 +489,46 @@ export default {
     margin-top: 10px;
 }
 
+.controls-mobile {
+    display: none;
+}
+
+.controls-pc {
+    display: flex;
+}
+
 .markmap-svg {
     width: 100%;
     height: 100%;
+}
+
+@media (max-width: 768px) {
+    .mind-container {
+        flex-direction: column;
+    }
+
+    .controls-pc {
+        display: none;
+    }
+
+    .controls-mobile {
+        display: flex;
+        margin-top: 10px;
+    }
+
+    .right-panel {
+        order: 2;
+        width: 100%;
+    }
+
+    .left-panel {
+        order: 1;
+        width: 100%;
+    }
+
+    .svg-container {
+        width: 100%;
+        height: 60vh;
+    }
 }
 </style>
