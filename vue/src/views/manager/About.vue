@@ -2,7 +2,33 @@
     <div class="about-container">
         <h1>关于</h1>
         <MarkdownRenderer :content="markdownContent" />
-<h4>原项目收款码让我删了，免费的东西不收钱,要支持上主页点个赞好了</h4>
+        <div class="image-comparison">
+            <h3>项目改进</h3>
+            <p>原项目仅支持通过标题生成思维导图，并可进行编辑。</p>
+            <p>优化后的项目不仅可以通过标题生成思维导图，还可以添加参考资料进行编辑。</p>
+            <div class="image-group">
+                <div class="image-container">
+                    <h5>原项目</h5>
+                    <img src="@/assets/css/original-1.png" alt="原项目图片1" />
+                </div>
+                <div class="image-container">
+                    <h5>现项目</h5>
+                    <img src="@/assets/css/improved-1.png" alt="优化后项目图片1" />
+                </div>
+            </div>
+            <p>并且我们还对移动端界面进行了UI适配，非常的nice</p>
+            <div class="image-group">
+                <div class="image-container">
+                    <h5>原项目</h5>
+                    <img src="@/assets/css/original-2.png" alt="原项目图片2" />
+                </div>
+                <div class="image-container">
+                    <h5>现项目</h5>
+                    <img src="@/assets/css/improved-2.png" alt="优化后项目图片2" />
+                </div>
+            </div>
+        </div>
+        <h4>原项目收款码让我删了，免费的东西不收钱,要支持上主页点个赞好了</h4>
     </div>
 </template>
 
@@ -36,16 +62,6 @@ MistPeak
 # 现项目地址(GitHub)
 
 [MarkMap-OpenAi-ChatGpt](https://github.com/zhanghxiao/MarkMap-OpenAi-ChatGpt)
-
-# 项目改进
-
-原项目仅支持通过标题生成思维导图，并可进行编辑。
-
-优化后的项目不仅可以通过标题生成思维导图，还可以添加参考资料进行编辑。
-
-并且我们还对移动端界面进行了UI适配，非常的nice
-
-# 赞助/支持
 `
         };
     }
@@ -64,6 +80,40 @@ h1 {
     text-align: center;
     color: #2c3e50;
     margin-bottom: 20px;
+}
+
+.image-comparison {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.image-group {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+}
+
+.image-container {
+    width: 48%;
+    text-align: center;
+}
+
+.image-container h5 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.image-container img {
+    width: 100%;
+    max-width: 100%; /* Ensure the image scales correctly */
+    border: 1px solid #ccc;
+    border-radius: 10px;
+}
+
+h4 {
+    text-align: center;
+    margin-top: 20px;
+    color: #2c3e50;
 }
 
 .donation-qr-code {
