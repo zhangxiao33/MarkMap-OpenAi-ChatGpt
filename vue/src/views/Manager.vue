@@ -14,7 +14,7 @@
             <span slot="title">系统首页</span>
           </el-menu-item>
             <el-menu-item index="/about">
-                <i class="el-icon-s-home"></i>
+                <i class="el-icon-info"></i>
                 <span slot="title">关于</span>
             </el-menu-item>
         </el-menu>
