@@ -28,7 +28,7 @@
                 </div>
             </div>
         </div>
-        <h4>免费的东西不收钱,要支持上主页点个star好了</h4>
+        
     </div>
 </template>
 
@@ -62,7 +62,8 @@ MistPeak
 # 现项目地址(GitHub)
 
 [MarkMap-OpenAi-ChatGpt](https://github.com/zhanghxiao/MarkMap-OpenAi-ChatGpt)
-`
+
+# 免费的东西不收钱,要支持上主页点个star好了
         };
     }
 };
