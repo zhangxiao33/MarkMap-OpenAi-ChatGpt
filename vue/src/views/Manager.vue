@@ -72,17 +72,33 @@ export default {
       user: JSON.parse(localStorage.getItem('honey-user') || '{}'),
     }
   },
-  mounted() {   // 页面加载完成之后触发
-
+  mounted() {
+    this.checkScreenWidth();
+    window.addEventListener('resize', this.checkScreenWidth);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.checkScreenWidth);
   },
   methods: {
     handleFull() {
-      document.documentElement.requestFullscreen()
+      document.documentElement.requestFullscreen();
     },
     handleCollapse() {
-      this.isCollapse = !this.isCollapse
-      this.asideWidth = this.isCollapse ? '64px' : '200px'
-      this.collapseIcon = this.isCollapse ? 'el-icon-s-unfold' : 'el-icon-s-fold'
+      this.isCollapse = !this.isCollapse;
+      this.asideWidth = this.isCollapse ? '64px' : '200px';
+      this.collapseIcon = this.isCollapse ? 'el-icon-s-unfold' : 'el-icon-s-fold';
+    },
+    checkScreenWidth() {
+      const screenWidth = window.innerWidth;
+      if (screenWidth < 768) {
+        this.isCollapse = true;
+        this.asideWidth = '64px';
+        this.collapseIcon = 'el-icon-s-unfold';
+      } else {
+        this.isCollapse = false;
+        this.asideWidth = '200px';
+        this.collapseIcon = 'el-icon-s-fold';
+      }
     }
   }
 }
@@ -128,9 +144,6 @@ export default {
 .el-menu--inline .el-menu-item.is-active {
   padding-left: 45px !important;
 }
-/*.el-submenu__icon-arrow {*/
-/*  margin-top: -5px;*/
-/*}*/
 
 .el-aside {
   transition: width .3s;
