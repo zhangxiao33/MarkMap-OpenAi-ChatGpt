@@ -1,79 +1,72 @@
 <template>
-
   <div>
     <el-container>
-      <!--    侧边栏  -->
+      <!-- 侧边栏 -->
       <el-aside :width="asideWidth" style="min-height: 100vh; background-color: #001529">
         <div style="height: 60px; color: white; display: flex; align-items: center; justify-content: center">
+          <img src="@/assets/css/mind.png" alt="logo" style="width: 30px; height: 30px; margin-right: 0px">
           <span class="logo-title" v-show="!isCollapse">PlantMindMap</span>
         </div>
-<el-menu :default-openeds="['info']" :collapse="isCollapse" :collapse-transition="false" router background-color="#001529" text-color="rgba(255, 255, 255, 0.65)"
-              active-text-color="#fff" style="border: none" :default-active="$route.path">
-<el-menu-item index="/home">
-<i class="el-icon-success"></i>
-<span slot="title">思维导图</span>
-</el-menu-item>
-<el-menu-item index="/home1">
-<i class="el-icon-success"></i>
-<span slot="title">流程图</span>
-</el-menu-item>
-<el-menu-item index="/home2">
-<i class="el-icon-success"></i>
-<span slot="title">用例图</span>
-</el-menu-item>
-<el-menu-item index="/home3">
-<i class="el-icon-success"></i>
-<span slot="title">时序图</span>
-</el-menu-item>
+        <el-menu :default-openeds="['info']" :collapse="isCollapse" :collapse-transition="false" router background-color="#001529" text-color="rgba(255, 255, 255, 0.65)"
+                  active-text-color="#fff" style="border: none" :default-active="$route.path">
+          <el-menu-item index="/home">
+            <i class="el-icon-success"></i>
+            <span slot="title">思维导图</span>
+          </el-menu-item>
+          <el-menu-item index="/home1">
+            <i class="el-icon-success"></i>
+            <span slot="title">流程图</span>
+          </el-menu-item>
+          <el-menu-item index="/home2">
+            <i class="el-icon-success"></i>
+            <span slot="title">用例图</span>
+          </el-menu-item>
+          <el-menu-item index="/home3">
+            <i class="el-icon-success"></i>
+            <span slot="title">时序图</span>
+          </el-menu-item>
+          <el-menu-item index="/about">
+            <i class="el-icon-info"></i>
+            <span slot="title">关于</span>
+          </el-menu-item>
+        </el-menu>
+      </el-aside>
 
-<el-menu-item index="/about">
-<i class="el-icon-info"></i>
-<span slot="title">关于</span>
-</el-menu-item>
+      <el-container>
+        <!-- 头部区域 -->
+        <el-header>
+          <i :class="collapseIcon" style="font-size: 26px" @click="handleCollapse"></i>
+          <el-breadcrumb separator-class="el-icon-arrow-right" style="margin-left: 20px">
+            <el-breadcrumb-item :to="{ path: '/' }">主页</el-breadcrumb-item>
+            <el-breadcrumb-item :to="{ path: $route.path }">{{ $route.meta.name }}</el-breadcrumb-item>
+          </el-breadcrumb>
 
-</el-menu>
-  </el-aside>
-
-  <el-container>
-    <!--        头部区域-->
-    <el-header>
-
-      <i :class="collapseIcon" style="font-size: 26px" @click="handleCollapse"></i>
-      <el-breadcrumb separator-class="el-icon-arrow-right" style="margin-left: 20px">
-        <el-breadcrumb-item :to="{ path: '/' }">主页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ path: $route.path }">{{ $route.meta.name }}</el-breadcrumb-item>
-      </el-breadcrumb>
-
-      <div style="flex: 1; width: 0; display: flex; align-items: center; justify-content: flex-end">
-        <i class="el-icon-quanping" style="font-size: 26px" @click="handleFull"></i>
-        <el-dropdown placement="bottom">
-          <div style="display: flex; align-items: center; cursor: default">
-            <img :src="user.avatar || 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80'" alt="" style="width: 40px; height: 40px; border-radius: 50%; margin: 0 5px">
-            <span>{{ user.name }}</span>
+          <div style="flex: 1; width: 0; display: flex; align-items: center; justify-content: flex-end">
+            <i class="el-icon-quanping" style="font-size: 26px" @click="handleFull"></i>
+            <el-dropdown placement="bottom">
+              <div style="display: flex; align-items: center; cursor: default">
+                <img :src="user.avatar || 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif?imageView2/1/w/80/h/80'" alt="" style="width: 40px; height: 40px; border-radius: 50%; margin: 0 5px">
+                <span>{{ user.name }}</span>
+              </div>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item @click.native="$router.push('/person')">个人信息</el-dropdown-item>
+                <el-dropdown-item @click.native="$router.push('/password')">修改密码</el-dropdown-item>
+                <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
           </div>
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item @click.native="$router.push('/person')">个人信息</el-dropdown-item>
-            <el-dropdown-item @click.native="$router.push('/password')">修改密码</el-dropdown-item>
-            <el-dropdown-item @click.native="logout">退出登录</el-dropdown-item>
-          </el-dropdown-menu>
-        </el-dropdown>
-      </div>
+        </el-header>
 
-    </el-header>
-
-    <!--        主体区域-->
-    <el-main>
-      <router-view @update:user="updateUser" />
-    </el-main>
-
-  </el-container>
-
-
-</el-container>
+        <!-- 主体区域 -->
+        <el-main>
+          <router-view @update:user="updateUser" />
+        </el-main>
+      </el-container>
+    </el-container>
   </div>
 </template>
-<script>
 
+<script>
 export default {
   name: 'HomeView',
   data() {
@@ -115,6 +108,7 @@ export default {
   }
 }
 </script>
+
 <style>
 .el-menu--inline {
   background-color: #000c17 !important;
