@@ -87,7 +87,7 @@ export default {
         const editorContent = ref('')
         const selectedMethod = ref('方法一')
         const contentModified = ref(false)
-        const diagramUrl = ref(require('@/assets/css/two.png')) // Initial placeholder image
+        const diagramUrl = ref(require('@/assets/two.png')) // Initial placeholder image
 
         const mm = ref(null)
         const svgRef = ref(null)
@@ -386,10 +386,7 @@ export default {
             }
 
             if (newMethod === '方法一') {
-                editorContent.value = methodOneTemplate.trim()
-                const { root } = transformer.transform(editorContent.value)
-                mm.value = Markmap.create(svgRef.value, null, root)
-                update()
+                window.location.reload() // 切换到方法一时刷新页面
             } else if (newMethod === '方法二') {
                 contentModified.value = false // Reset contentModified when switching to method two
                 scale.value = 1 // Reset scale when switching to method two
