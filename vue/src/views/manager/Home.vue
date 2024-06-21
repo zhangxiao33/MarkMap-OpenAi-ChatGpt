@@ -19,6 +19,11 @@
                     </el-radio-group>
                 </el-col>
             </el-row>
+            <el-row v-if="selectedMethod === '方法一'" :gutter="20" style="margin-top: 10px;">
+                <el-col :span="24">
+                    <el-input v-model="referenceContent" type="textarea" rows="5" placeholder="输入参考内容"></el-input>
+                </el-col>
+            </el-row>
             <el-row v-if="selectedMethod === '方法二'" :gutter="20" style="margin-top: 10px;">
                 <el-col :span="24">
                     <el-input v-model="referenceContent" type="textarea" rows="5" placeholder="输入参考内容"></el-input>
@@ -87,7 +92,7 @@ export default {
         const editorContent = ref('')
         const selectedMethod = ref('方法一')
         const contentModified = ref(false)
-        const diagramUrl = ref(require('@/assets/css/two.png')) // Initial placeholder image
+        const diagramUrl = ref(require('@/assets/two.png')) // Initial placeholder image
 
         const mm = ref(null)
         const svgRef = ref(null)
@@ -211,7 +216,7 @@ export default {
                                     },
                                     {
                                         role: 'user',
-                                        content: `${title.value}`
+                                        content: `${title.value}${referenceContent.value ? '\n参考内容：' + referenceContent.value : ''}`
                                     }
                                 ],
                                 stream: true,
