@@ -87,7 +87,7 @@ export default {
         const editorContent = ref('')
         const selectedMethod = ref('方法一')
         const contentModified = ref(false)
-        const diagramUrl = ref(require('@/assets/css/two.png')) // Initial placeholder image
+        const diagramUrl = ref(require('@/assets/two.png')) // Initial placeholder image
 
         const mm = ref(null)
         const svgRef = ref(null)
@@ -102,15 +102,28 @@ export default {
         const methodOneTemplate = `
 # 思维导图
 
-1. 标题1
- - 子标题1
- - 子标题2
-3. 标题2
-4. 标题3
-- beautiful
-- useful
-- easy
-- interactive
+## 标题1
+- 子标题1
+    - 三级标题1
+    - 三级标题2
+- 子标题2
+    - 三级标题1
+    - 三级标题2
+    - 三级标题3
+- 子标题3
+- 子标题4
+
+## 标题2
+- 子标题1
+- 子标题2
+- 子标题3
+
+
+## 标题3
+- 子标题1
+- 子标题2
+
+
         `
 
         const methodTwoTemplate = `
@@ -124,6 +137,10 @@ export default {
 ** 主题2
 *** 子主题3
 **** 叶子节点3
+** 主题3
+*** 子主题4
+**** 叶子节点4
+**** 叶子节点5
 @endmindmap
         `
 

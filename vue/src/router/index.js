@@ -17,7 +17,12 @@ const routes = [
     children: [
       { path: 'home', name: 'Home', meta: { name: '系统首页' }, component: () => import('../views/manager/Home') },
       { path: 'about', name: 'About', meta: { name: '关于' }, component: () => import('../views/manager/About') },
-      ]
+      { path: 'home1', name: 'Home1', meta: { name: 'Home1' }, component: () => import('../views/manager/Home1') },
+      { path: 'home2', name: 'Home2', meta: { name: 'Home2' }, component: () => import('../views/manager/Home2') },
+      { path: 'home3', name: 'Home3', meta: { name: 'Home3' }, component: () => import('../views/manager/Home3') },
+      { path: 'home4', name: 'Home4', meta: { name: 'Home4' }, component: () => import('../views/manager/Home4') },
+      { path: 'home5', name: 'Home5', meta: { name: 'Home5' }, component: () => import('../views/manager/Home5') },
+    ]
   },
 ]
 

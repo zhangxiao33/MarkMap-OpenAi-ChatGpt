@@ -5,7 +5,7 @@
         <div class="image-comparison">
             <h3>项目改进</h3>
             <p>原项目仅支持通过标题生成思维导图，并可进行编辑。</p>
-            <p>优化后的项目不仅可以通过标题生成思维导图，还可以添加参考资料进行编辑。</p>
+            <p>优化后的项目不仅可以通过标题生成思维导图，还可以添加参考资料进行编辑。也可以生成流程图、用例图和时序图</p>
             <div class="image-group">
                 <div class="image-container">
                     <h5>原项目</h5>
@@ -28,7 +28,7 @@
                 </div>
             </div>
         </div>
-        
+        <h4>原项目收款码让我删了，免费的东西不收钱,要支持上主页点个赞好了</h4>
     </div>
 </template>
 
@@ -62,8 +62,6 @@ MistPeak
 # 现项目地址(GitHub)
 
 [MarkMap-OpenAi-ChatGpt](https://github.com/zhanghxiao/MarkMap-OpenAi-ChatGpt)
-
-# 免费的东西不收钱,要支持上主页点个star好了
 `
         };
     }
